@@ -37,7 +37,17 @@ torder :: Order    -- ^ Order of resulting traversal
        -> Maybe a  -- ^ Optional leaf value
        -> Tree a   -- ^ Tree to traverse
        -> [a]      -- ^ List of values in specified order
-torder = error "TODO: define torder"
+torder ord leafVal tree =
+  case tree of
+    Leaf ->
+      case leafVal of
+        Nothing -> []
+        Just x  -> [x]
+    Branch x l r ->
+      case ord of
+        PreOrder  -> x : (torder PreOrder  leafVal l ++ torder PreOrder  leafVal r)
+        InOrder   ->     torder InOrder   leafVal l ++ (x : torder InOrder   leafVal r)
+        PostOrder ->     torder PostOrder leafVal l ++ torder PostOrder leafVal r ++ [x]
 
 -- | Returns values of given 'Forest' separated by optional separator
 -- where each 'Tree' is traversed in specified 'Order' with optional leaf value
@@ -56,5 +66,13 @@ forder :: Order     -- ^ Order of tree traversal
        -> Maybe a   -- ^ Optional leaf value
        -> Forest a  -- ^ List of trees to traverse
        -> [a]       -- ^ List of values in specified tree order
-forder = error "TODO: define forder"
-
+forder ord sep leafVal forest = go forest
+  where
+    go []       = []
+    go [t]      = torder ord leafVal t
+    go (t : ts) =
+      let here = torder ord leafVal t
+          rest = go ts
+      in case sep of
+           Nothing -> here ++ rest
+           Just s  -> here ++ [s] ++ rest
