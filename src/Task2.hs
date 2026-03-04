@@ -33,7 +33,10 @@ type Cmp a = a -> a -> Ordering
 -- GT
 --
 compare :: Ord a => Cmp a
-compare = error "TODO: define compare"
+compare x y
+  | x < y     = LT
+  | x > y     = GT
+  | otherwise = EQ
 
 -- | Conversion of list to binary search tree
 -- using given comparison function
@@ -46,7 +49,10 @@ compare = error "TODO: define compare"
 -- Leaf
 --
 listToBST :: Cmp a -> [a] -> Tree a
-listToBST = error "TODO: define listToBST"
+listToBST cmp = go Leaf
+  where
+    go t []     = t
+    go t (x:xs) = go (tinsert cmp x t) xs
 
 -- | Conversion from binary search tree to list
 --
@@ -62,7 +68,8 @@ listToBST = error "TODO: define listToBST"
 -- []
 --
 bstToList :: Tree a -> [a]
-bstToList = error "TODO: define bstToList"
+bstToList Leaf = []
+bstToList (Branch x l r) = bstToList l ++ (x : bstToList r)
 
 -- | Tests whether given tree is a valid binary search tree
 -- with respect to given comparison function
@@ -77,7 +84,25 @@ bstToList = error "TODO: define bstToList"
 -- False
 --
 isBST :: Cmp a -> Tree a -> Bool
-isBST = error "TODO: define isBST"
+isBST cmp = go Nothing Nothing
+  where
+    lt a b =
+      case cmp a b of
+        LT -> True
+        _  -> False
+
+    withinLower Nothing   _ = True
+    withinLower (Just lo) x = lt lo x
+
+    withinUpper Nothing   _ = True
+    withinUpper (Just hi) x = lt x hi
+
+    go _  _  Leaf = True
+    go lo hi (Branch x l r) =
+      withinLower lo x
+        && withinUpper hi x
+        && go lo (Just x) l
+        && go (Just x) hi r
 
 -- | Searches given binary search tree for
 -- given value with respect to given comparison
@@ -95,7 +120,12 @@ isBST = error "TODO: define isBST"
 -- Just 2
 --
 tlookup :: Cmp a -> a -> Tree a -> Maybe a
-tlookup = error "TODO: define tlookup"
+tlookup _   _ Leaf = Nothing
+tlookup cmp k (Branch x l r) =
+  case cmp k x of
+    EQ -> Just x
+    LT -> tlookup cmp k l
+    GT -> tlookup cmp k r
 
 -- | Inserts given value into given binary search tree
 -- preserving its BST properties with respect to given comparison
@@ -113,7 +143,12 @@ tlookup = error "TODO: define tlookup"
 -- Branch 'a' Leaf Leaf
 --
 tinsert :: Cmp a -> a -> Tree a -> Tree a
-tinsert = error "TODO: define tinsert"
+tinsert _   v Leaf = Branch v Leaf Leaf
+tinsert cmp v (Branch x l r) =
+  case cmp v x of
+    LT -> Branch x (tinsert cmp v l) r
+    GT -> Branch x l (tinsert cmp v r)
+    EQ -> Branch v l r
 
 -- | Deletes given value from given binary search tree
 -- preserving its BST properties with respect to given comparison
@@ -129,4 +164,25 @@ tinsert = error "TODO: define tinsert"
 -- Leaf
 --
 tdelete :: Cmp a -> a -> Tree a -> Tree a
-tdelete = error "TODO: define tdelete"
+tdelete _   _ Leaf = Leaf
+tdelete cmp k (Branch x l r) =
+  case cmp k x of
+    LT -> Branch x (tdelete cmp k l) r
+    GT -> Branch x l (tdelete cmp k r)
+    EQ -> deleteRoot l r
+  where
+    deleteRoot :: Tree a -> Tree a -> Tree a
+    deleteRoot Leaf Leaf = Leaf
+    deleteRoot l'   Leaf = l'
+    deleteRoot Leaf r'   = r'
+    deleteRoot l'   r'   =
+      let (m, r'') = extractMin r'
+      in Branch m l' r''
+
+    -- r' must be non-Leaf here
+    extractMin :: Tree a -> (a, Tree a)
+    extractMin Leaf = error "extractMin: unexpected Leaf"
+    extractMin (Branch y Leaf ry) = (y, ry)
+    extractMin (Branch y ly ry) =
+      let (m, ly') = extractMin ly
+      in (m, Branch y ly' ry)
