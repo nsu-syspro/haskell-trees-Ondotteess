@@ -37,7 +37,7 @@ torder :: Order    -- ^ Order of resulting traversal
        -> Maybe a  -- ^ Optional leaf value
        -> Tree a   -- ^ Tree to traverse
        -> [a]      -- ^ List of values in specified order
-torder ord leafVal Leaf =
+torder _ leafVal Leaf =
   case leafVal of
     Nothing -> []
     Just x  -> [x]
