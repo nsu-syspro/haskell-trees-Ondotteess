@@ -8,7 +8,7 @@ module Task3 where
 import Prelude hiding (compare, foldl, foldr, Ordering(..))
 
 import Task1 (Tree(..))
-import qualified Task2 as T2
+import Task2
 
 -- * Type definitions
 
@@ -17,8 +17,8 @@ type Map k v = Tree (k, v)
 
 -- * Function definitions
 
-cmpKV :: Ord k => T2.Cmp (k, v)
-cmpKV (k1, _) (k2, _) = T2.compare k1 k2
+cmpKV :: Ord k => Cmp (k, v)
+cmpKV (k1, _) (k2, _) = compare k1 k2
 
 dummyV :: v
 dummyV = error "dummy value: should not be evaluated"
@@ -33,7 +33,7 @@ dummyV = error "dummy value: should not be evaluated"
 -- Leaf
 --
 listToMap :: Ord k => [(k, v)] -> Map k v
-listToMap = T2.listToBST cmpKV
+listToMap = listToBST cmpKV
 
 -- | Conversion from 'Map' to association list sorted by key
 --
@@ -45,7 +45,7 @@ listToMap = T2.listToBST cmpKV
 -- []
 --
 mapToList :: Map k v -> [(k, v)]
-mapToList = T2.bstToList
+mapToList = bstToList
 
 -- | Searches given 'Map' for a value associated with given key
 --
@@ -61,7 +61,7 @@ mapToList = T2.bstToList
 --
 mlookup :: Ord k => k -> Map k v -> Maybe v
 mlookup k m =
-  case T2.tlookup cmpKV (k, dummyV) m of
+  case tlookup cmpKV (k, dummyV) m of
     Nothing     -> Nothing
     Just (_, v) -> Just v
 
@@ -80,7 +80,7 @@ mlookup k m =
 -- Branch (1,'X') Leaf Leaf
 --
 minsert :: Ord k => k -> v -> Map k v -> Map k v
-minsert k v = T2.tinsert cmpKV (k, v)
+minsert k v = tinsert cmpKV (k, v)
 
 -- | Deletes given key from given 'Map'
 --
@@ -95,4 +95,4 @@ minsert k v = T2.tinsert cmpKV (k, v)
 -- Leaf
 --
 mdelete :: Ord k => k -> Map k v -> Map k v
-mdelete k = T2.tdelete cmpKV (k, dummyV)
+mdelete k = tdelete cmpKV (k, dummyV)

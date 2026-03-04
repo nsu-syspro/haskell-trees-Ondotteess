@@ -6,7 +6,6 @@ module Task2 where
 -- Explicit import of Prelude to hide functions
 -- that are not supposed to be used in this assignment
 import Prelude hiding (compare, foldl, foldr, Ordering(..))
-import qualified Prelude as P
 
 import Task1 (Tree(..))
 
@@ -34,11 +33,10 @@ type Cmp a = a -> a -> Ordering
 -- GT
 --
 compare :: Ord a => Cmp a
-compare x y =
-  case P.compare x y of
-    P.LT -> LT
-    P.EQ -> EQ
-    P.GT -> GT
+compare x y
+  | x < y     = LT
+  | x > y     = GT
+  | otherwise = EQ
 
 -- | Conversion of list to binary search tree
 -- using given comparison function
@@ -93,10 +91,10 @@ isBST cmp = go Nothing Nothing
         LT -> True
         _  -> False
 
-    withinLower Nothing  _ = True
+    withinLower Nothing   _ = True
     withinLower (Just lo) x = lt lo x
 
-    withinUpper Nothing  _ = True
+    withinUpper Nothing   _ = True
     withinUpper (Just hi) x = lt x hi
 
     go _  _  Leaf = True
